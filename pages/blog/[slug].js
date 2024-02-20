@@ -16,7 +16,9 @@ import Pagination from 'components/pagination'
 import Image from 'next/image'
 import { getPlaiceholder } from 'plaiceholder'
 import { getImageBuffer } from 'lib/getImageBuffer'
+
 import { eyecatchLocal } from 'lib/constants'
+
 const Post = ({
   title,
   publish,
@@ -40,6 +42,7 @@ const Post = ({
         <PostHeader title={title} subtitle='Blog Article' publish={publish} />
         <figure>
           <Image
+            key={eyecatch.url}
             src={eyecatch.url}
             alt=''
             layout='responsive'
@@ -71,6 +74,7 @@ const Post = ({
     </Container>
   )
 }
+
 const getStaticPaths = async () => {
   const allSlugs = await getAllSlugs()
   return {
@@ -78,11 +82,16 @@ const getStaticPaths = async () => {
     fallback: false
   }
 }
+
 const getStaticProps = async context => {
   const slug = context.params.slug
+
   const post = await getPostBySlug(slug)
+
   const description = extractText(post.content)
+
   const eyecatch = post.eyecatch ?? eyecatchLocal
+
   const imageBuffer = await getImageBuffer(eyecatch.url)
   const { base64 } = await getPlaiceholder(imageBuffer)
   eyecatch.blurDataURL = base64
