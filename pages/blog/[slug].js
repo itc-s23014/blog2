@@ -1,4 +1,4 @@
-import { getPostBySlug } from 'lib/api'
+import { getPostBySlug, getAllSlugs } from 'lib/api'
 import { extractText } from 'lib/extract-text'
 import Meta from 'components/meta'
 import Container from 'components/container'
@@ -12,8 +12,10 @@ import {
 import ConvertBody from 'components/convert-body'
 import PostCategories from 'components/post-categories'
 import Image from 'next/image'
-
-const Schedule = ({
+import { getPlaiceholder } from 'plaiceholder'
+import { getImageBuffer } from 'lib/getImageBuffer'
+import { eyecatchLocal } from 'lib/constants'
+const Post = ({
   title,
   publish,
   content,
@@ -41,6 +43,8 @@ const Schedule = ({
             height={eyecatch.height}
             size='(min-width: 1152px) 1152px, 100vw'
             priority
+            placeholder='blur'
+            blurDataURL={eyecatch.blurDataURL}
           />
         </figure>
         <TwoColumn>
@@ -57,23 +61,32 @@ const Schedule = ({
     </Container>
   )
 }
-const getStaticProps = async () => {
-  const slug = 'schedule'
 
+const getStaticPaths = async () => {
+  const allSlugs = await getAllSlugs()
+  return {
+    paths: allSlugs.map(({ slug }) => `/blog/${slug}`),
+    fallback: false
+  }
+}
+const getStaticProps = async context => {
+  const slug = context.params.slug
   const post = await getPostBySlug(slug)
-
   const description = extractText(post.content)
-
+  const eyecatch = post.eyecatch ?? eyecatchLocal
+  const imageBuffer = await getImageBuffer(eyecatch.url)
+  const { base64 } = await getPlaiceholder(imageBuffer)
+  eyecatch.blurDataURL = base64
   return {
     props: {
       title: post.title,
       publish: post.publishDate,
       content: post.content,
-      eyecatch: post.eyecatch,
+      eyecatch,
       categories: post.categories,
       description
     }
   }
 }
-export default Schedule
-export { getStaticProps }
+export default Post
+export { getStaticProps, getStaticPaths }
