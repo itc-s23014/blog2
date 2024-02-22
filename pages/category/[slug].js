@@ -9,7 +9,7 @@ import {eyecatchLocal } from 'lib/constants'
 const Category = () => {
   return (
     <Container>
-      <PostHeader title ={name} subtitle = "Blog" Category" />
+        <PostHeader title={name} subtitle="Blog" category={Category} />
       <Posts posts={posts} />
     </Container>
 
